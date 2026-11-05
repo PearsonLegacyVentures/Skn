@@ -95,3 +95,23 @@ h1,h2,h3{font-family:var(--serif);font-weight:800;letter-spacing:-.06em;line-hei
 .booking-dialog .modal-main{max-height:calc(100dvh - 140px);overflow-y:auto}
 @media(max-width:840px){.nav{background:#fffdf8}.nav a{color:#214d45}.site-header .header-inner{min-height:78px}}
 @media(max-width:620px){.hero{min-height:680px}.hero-content h1{font-size:clamp(3.1rem,11vw,4.6rem)}.hero .photo-credit{display:none}.booking-dialog{max-height:94dvh;margin:auto 10px}.booking-dialog .modal-main{max-height:calc(94dvh - 150px)}}
+
+/* Published St. Kitts service prices */
+.rate-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.rate-card{background:#fffdf8;border:1px solid #d8e2d8;padding:25px 20px;display:flex;flex-direction:column;gap:8px;min-width:0;text-decoration:none;border-radius:18px;box-shadow:0 8px 30px #173c3020}
+.rate-card:hover{border-color:#b68e5a;transform:translateY(-2px)}
+.rate-card .eyebrow{margin-bottom:8px;font-size:12px}
+.rate-card .arrow{font-size:12px;font-weight:700;margin-top:8px;color:#267a67}
+.rate-card small{color:#657a70;font-size:12px}
+.rate-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #e7e8df;padding:9px 0;color:#425a50;font-size:14px}
+.rate-row strong{font-size:24px;color:#194d42;font-family:Georgia,serif;white-space:nowrap}
+.rate-disclaimer{margin:24px 0 0;font-size:13px;color:#59766b;max-width:880px}
+.tile-price{border-top:1px solid #d8e6d9;margin:12px 0;padding-top:14px;color:#28584c;font-size:13px;font-weight:650}
+.tile-price strong{font-size:19px;color:#a07849}
+.tile-price small{display:block;margin-top:5px;color:#62766e;font-size:11px;font-weight:500}
+.services-rates{margin-bottom:40px}
+.services-rates h2{margin:12px 0 24px}
+.booking-dialog .estimate-amount{color:#fff;font-size:1.3rem;font-weight:800;letter-spacing:-.02em;margin:11px 0 8px!important}
+.booking-dialog .estimate #estimateNote{display:block;line-height:1.5}
+@media(max-width:1000px){.rate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.rate-grid{grid-template-columns:1fr}.rate-card{padding:20px}.rate-row strong{font-size:23px}.booking-dialog .estimate-amount{font-size:1.15rem}}

@@ -13,7 +13,40 @@ document.querySelectorAll("[data-book]").forEach(el=>el.addEventListener("click"
 document.querySelectorAll("[data-close-booking]").forEach(el=>el.addEventListener("click",()=>dialog?.close()));
 dialog?.addEventListener("close",()=>document.body.classList.remove("modal-open"));
 dialog?.addEventListener("click",e=>{if(e.target===dialog)dialog.close()});
-function updateSummary(){if(!form)return;const f=new FormData(form),service=f.get("service"),duration=f.get("duration"),guests=f.get("guests"),area=f.get("area");const names={swedish:"Swedish massage",deep:"Deep tissue massage",couples:"Couples massage",villa:"Villa massage",hotel:"Hotel / resort massage",yacht:"Yacht massage",mobile:"Mobile massage",beach:"Beach-adjacent request",group:"Group wellness"};const out=get("estimateSummary");if(out)out.textContent=(names[service]||"Your selected treatment")+" · "+(duration||"60")+" min · "+(guests||"1")+" guest(s)"+(area?" · "+area:"");}
+const ST_KITTS_RATES=Object.freeze({swedish:{60:90,90:140},deep:{60:115,90:160},couples:{60:230,90:320},beach:{60:190,90:260}});
+const NEVIS_AREAS=new Set(["Nevis","Pinney's Beach","Charlestown","Oualie Beach"]);
+const money=amount=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(amount);
+function priceFor(data){
+ const service=String(data.service||""),duration=String(data.duration||""),area=String(data.area||""),guests=Number(data.guests||1);
+ if(!service)return{amount:null,note:"Choose a treatment to view the published St. Kitts subtotal."};
+ if(!area)return{amount:null,note:"Choose your location for an accurate service estimate."};
+ if(NEVIS_AREAS.has(area))return{amount:null,note:"Nevis prices require an island-specific quote before payment."};
+ if(area.startsWith("Other"))return{amount:null,note:"This location requires an individual quotation."};
+ const prices=ST_KITTS_RATES[service];
+ if(!prices)return{amount:null,note:"Custom service: a quote is provided after location and therapist review."};
+ if(service==="couples"&&guests!==2)return{amount:null,note:"Couples massage covers exactly two guests."};
+ if(!Number.isInteger(guests)||guests<1||guests>10)return{amount:null,note:"Select a valid guest count."};
+ const unit=prices[duration];if(!unit)return{amount:null,note:"Choose a 60- or 90-minute massage."};
+ const amount=unit*(service==="couples"?1:guests);
+ const details=service==="couples"?"one couple (two guests)":"each of "+guests+" guest(s)";
+ return {amount,note:"Published St. Kitts service subtotal for "+details+". Any additional travel, property or setup fees are quoted before payment."};
+}
+const summaryElement=get("estimateSummary");
+if(summaryElement){
+ const value=document.createElement("p");value.id="estimateAmount";value.className="estimate-amount";value.setAttribute("aria-live","polite");summaryElement.after(value);
+ const detail=summaryElement.parentElement?.querySelector("small");if(detail)detail.id="estimateNote";
+}
+function updateSummary(){
+ if(!form)return;
+ const serviceField=form.querySelector('[name="service"]'),guestField=form.querySelector('[name="guests"]');
+ if(serviceField?.value==="couples"&&guestField)guestField.value="2";
+ const data=Object.fromEntries(new FormData(form).entries());
+ const names={swedish:"Swedish massage",deep:"Deep tissue massage",couples:"Couples massage",mobile:"Mobile massage",villa:"Villa massage",hotel:"Hotel / resort massage",yacht:"Yacht massage",beach:"Beach massage",group:"Group wellness"};
+ const summary=get("estimateSummary");if(summary)summary.textContent=(names[data.service]||"Choose a treatment")+" · "+(data.duration||"60")+" min · "+(data.guests||"1")+" guest(s)"+(data.area?" · "+data.area:"");
+ const pricing=priceFor(data),value=get("estimateAmount");
+ if(value)value.textContent=pricing.amount===null?"Price on request":"Estimated service subtotal: "+money(pricing.amount)+" USD";
+ const detail=get("estimateNote");if(detail)detail.textContent=pricing.note+" Nothing is charged or booked at this stage.";
+}
 form?.addEventListener("change",updateSummary);
 function error(t){if(result){result.textContent=t;result.classList.add("show");result.scrollIntoView({block:"nearest",behavior:"smooth"})}}
 function formatted(d){return d.replace("T"," ")}
@@ -27,7 +60,7 @@ const bookingTime=localEpoch(values.date,values.time);
 if(!Number.isFinite(bookingTime)||bookingTime-Date.now()<LIMIT_HOURS*3600000){const m=minimum();return error("Please select a start time at least 6 hours from now. Earliest possible: "+m.date+" at "+m.time+" (St. Kitts & Nevis time, UTC−4).");}
 if(bookingTime-Date.now()>366*86400000)return error("Please select a date within the next 12 months.");
 if(values.time<"10:00"||values.time>"19:00")return error("Appointments can only be requested for starts between 10:00 AM and 7:00 PM local time.");
-const entries=[["Destination","St. Kitts & Nevis"],["Service",values.service],["Duration",values.duration+" minutes"],["Number of guests",values.guests],["Area",values.area],["Property / meeting point",values.property],["Preferred date",values.date],["Preferred time (AST, UTC-4)",values.time],["Name",values.name],["Email",values.email],["Phone",values.phone],["Notes",values.notes||"None"],["Website page",location.href]];
+const entries=[["Destination","St. Kitts & Nevis"],["Service",values.service],["Duration",values.duration+" minutes"],["Number of guests",values.guests],["St. Kitts service subtotal (USD)",priceFor(values).amount===null?"Quote required":money(priceFor(values).amount)],["Pricing note",priceFor(values).note],["Area",values.area],["Property / meeting point",values.property],["Preferred date",values.date],["Preferred time (AST, UTC-4)",values.time],["Name",values.name],["Email",values.email],["Phone",values.phone],["Notes",values.notes||"None"],["Website page",location.href]];
 const text="Hello Tranquilitas, I would like to request a mobile massage.\n\n"+entries.map(([k,v])=>k+": "+v).join("\n")+"\n\nPlease confirm therapist availability, access and my full final price before payment. I understand this is a request, not a confirmed appointment.";
 const link="https://wa.me/"+WA+"?text="+encodeURIComponent(text);
 const a=document.createElement("a");a.href=link;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Open WhatsApp with your prepared request";
